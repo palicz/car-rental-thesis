@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 
 import { AuthButton } from '@/modules/auth/ui/components/auth-button';
@@ -15,12 +14,12 @@ export const Header = () => {
           {/* Left section - Logo and brand name */}
           <div className="flex shrink-0 items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Image
+              {/*               <Image
                 src="/logo.svg"
                 alt="Autókölcsönző"
                 width={32}
                 height={32}
-              />
+              /> */}
               <h1 className="text-xl font-bold">
                 Rental.com<sup>®</sup>
               </h1>
