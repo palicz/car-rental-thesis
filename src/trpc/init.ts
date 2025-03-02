@@ -7,6 +7,7 @@ import superjson from 'superjson';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { auth } from '@/lib/auth';
+import { ratelimit } from '@/lib/ratelimit';
 
 export const createTRPCContext = cache(async () => {
   const session = await auth.api.getSession({
@@ -33,6 +34,7 @@ const t = initTRPC.context<Context>().create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure;
+
 /**
  * Protected procedure middleware that ensures the request is authenticated.
  *
@@ -67,6 +69,12 @@ export const protectedProcedure = t.procedure.use(
     // (e.g., user was deleted but session still exists)
     if (!user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+
+    const { success } = await ratelimit.limit(user.id);
+
+    if (!success) {
+      throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
     }
 
     // Continue to the next middleware or resolver with the same context
