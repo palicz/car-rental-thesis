@@ -3,9 +3,13 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin } from 'better-auth/plugins';
 
 import { db } from '@/db';
-import { account, session, user, verification } from '@/db/schema';
+import * as schema from '@/db/schema';
 
 import { hashPassword, verifyPassword } from './utils';
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+  throw new Error('Missing Google OAuth credentials in environment variables');
+}
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -25,10 +29,14 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {
-      user,
-      session,
-      account,
-      verification,
+      ...schema,
+      user: schema.users,
     },
   }),
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
 });

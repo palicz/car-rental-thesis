@@ -1,7 +1,7 @@
 import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
-export const user = pgTable('user', {
+export const users = pgTable('users', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -15,8 +15,8 @@ export const user = pgTable('user', {
   banExpires: timestamp('ban_expires'),
 });
 
-export const userCreateSchema = createSelectSchema(user);
-export const userInsertSchema = createInsertSchema(user);
+export const userCreateSchema = createSelectSchema(users);
+export const userInsertSchema = createInsertSchema(users);
 
 export const session = pgTable('session', {
   id: text('id').primaryKey(),
@@ -28,7 +28,7 @@ export const session = pgTable('session', {
   userAgent: text('user_agent'),
   userId: text('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => users.id, { onDelete: 'cascade' }),
   impersonatedBy: text('impersonated_by'),
 });
 
@@ -38,7 +38,7 @@ export const account = pgTable('account', {
   providerId: text('provider_id').notNull(),
   userId: text('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => users.id, { onDelete: 'cascade' }),
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   idToken: text('id_token'),

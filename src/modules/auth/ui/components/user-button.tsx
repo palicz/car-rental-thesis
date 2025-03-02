@@ -36,7 +36,7 @@ export const UserButton = ({ user }: UserButtonProps) => {
       <DropdownMenuTrigger asChild className="cursor-pointer">
         <Button
           variant="ghost"
-          className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus-visible:ring-0 focus-visible:ring-offset-0"
+          className="flex items-center gap-2 p-1 focus-visible:ring-0 focus-visible:ring-offset-0"
         >
           <UserAvatar
             imageUrl={user.image || ''}
