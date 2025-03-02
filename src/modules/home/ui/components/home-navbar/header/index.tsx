@@ -36,12 +36,6 @@ export const Header = () => {
           {/* Right section - Auth buttons */}
           {/* TODO: Implement authentication */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/signin"
-              className="text-sm font-medium text-gray-700 hover:text-gray-900"
-            >
-              Sign in
-            </Link>
             <AuthButton />
           </div>
         </div>
