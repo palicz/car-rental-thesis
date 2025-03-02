@@ -5,6 +5,7 @@ import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 
 import { Toaster } from '@/components/ui/sonner';
+import { TRPCProvider } from '@/trpc/client';
 
 export const metadata: Metadata = {
   title: 'Autókölcsönző',
@@ -19,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="font-sans antialiased">
-        {children}
+        <TRPCProvider>{children}</TRPCProvider>
         <Toaster />
       </body>
     </html>
