@@ -43,6 +43,18 @@ export function TRPCProvider(
         httpBatchLink({
           transformer: superjson,
           url: getUrl(),
+          //
+          /**
+           * Configure request headers for tRPC calls
+           * Sets a custom header to identify the source of the request
+           * This helps with debugging and request tracking
+           * @returns {Headers} Configured headers object
+           */
+          async headers() {
+            const headers = new Headers();
+            headers.set('x-trpc-source', 'nextjs-react');
+            return headers;
+          },
         }),
       ],
     }),
