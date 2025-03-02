@@ -5,8 +5,9 @@ import { Loader2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -16,7 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 
@@ -42,7 +42,9 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
     defaultValues: {
       email: '',
       password: '',
-      name: '',
+      firstName: '',
+      lastName: '',
+      confirmPassword: '',
     },
     resolver: zodResolver(isSignup ? signUpSchema : signInSchema),
   });
@@ -52,20 +54,22 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
       ? authClient.signUp.email(values as SignUpData, {
           onRequest: () => setIsLoading(true),
           onResponse: () => setIsLoading(false),
-          onError: error => {
-            toast({ description: error.error.message });
+          onError: () => {
+            toast.error('Something went wrong!');
           },
           onSuccess: () => {
+            toast.success('Account created!');
             router.push('/');
           },
         })
       : authClient.signIn.email(values as SignInData, {
           onRequest: () => setIsLoading(true),
           onResponse: () => setIsLoading(false),
-          onError: error => {
-            toast({ description: error.error.message });
+          onError: () => {
+            toast.error('Something went wrong!');
           },
           onSuccess: () => {
+            toast.success('Welcome back');
             router.push('/');
           },
         }));
@@ -78,10 +82,12 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
       callbackURL: '/',
       fetchOptions: {
         onSuccess: () => {
+          toast.success('Welcome back');
           setIsGoogleLoading(false);
         },
         onError: error => {
           console.error(error);
+          toast.error('Failed to sign in with Google. Please try again.');
           setIsGoogleLoading(false);
         },
       },
@@ -91,32 +97,55 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
   return (
     <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
-        {isSignup && (
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Your Name"
-                    type="text"
-                    autoCapitalize="none"
-                    autoComplete="name"
-                    autoCorrect="off"
-                    disabled={isLoading || isGoogleLoading}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
+            {isSignup && (
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="John"
+                          type="text"
+                          autoCapitalize="none"
+                          autoComplete="given-name"
+                          autoCorrect="off"
+                          disabled={isLoading || isGoogleLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Doe"
+                          type="text"
+                          autoCapitalize="none"
+                          autoComplete="family-name"
+                          autoCorrect="off"
+                          disabled={isLoading || isGoogleLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
             <FormField
               control={form.control}
               name="email"
@@ -150,7 +179,7 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
                       placeholder="********"
                       type="password"
                       autoCapitalize="none"
-                      autoComplete="current-password"
+                      autoComplete="new-password"
                       autoCorrect="off"
                       disabled={isLoading || isGoogleLoading}
                       {...field}
@@ -160,9 +189,34 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
                 </FormItem>
               )}
             />
-            <button
+
+            {isSignup && (
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="********"
+                        type="password"
+                        autoCapitalize="none"
+                        autoComplete="new-password"
+                        autoCorrect="off"
+                        disabled={isLoading || isGoogleLoading}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <Button
               type="submit"
-              className={cn(buttonVariants())}
+              className={cn(buttonVariants({ variant: 'custom' }))}
               disabled={isLoading}
             >
               {isLoading && (
@@ -171,7 +225,7 @@ export function UserAuthForm({ className, type, ...props }: UserAuthFormProps) {
               {type === 'register'
                 ? 'Sign Up with Email'
                 : 'Sign In with Email'}
-            </button>
+            </Button>
           </div>
         </form>
       </Form>
