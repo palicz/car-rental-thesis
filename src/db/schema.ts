@@ -1,5 +1,7 @@
 import {
   boolean,
+  decimal,
+  integer,
   pgTable,
   text,
   timestamp,
@@ -77,3 +79,32 @@ export const categories = pgTable(
   },
   t => [uniqueIndex('name_idx').on(t.name)],
 );
+
+export const transmissionTypes = pgTable('transmission_types', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(), // 'manual', 'automatic'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const fuelTypes = pgTable('fuel_types', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(), // 'petrol', 'diesel', 'electric', 'hybrid'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const cars = pgTable('cars', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  categoryId: uuid('category_id').references(() => categories.id),
+  transmissionTypeId: uuid('transmission_type_id').references(
+    () => transmissionTypes.id,
+  ),
+  fuelTypeId: uuid('fuel_type_id').references(() => fuelTypes.id),
+  doors: integer('doors'),
+  seats: integer('seats'),
+  hasAC: boolean('has_ac').default(false),
+  pricePerDay: decimal('price_per_day', { precision: 10, scale: 2 }).notNull(),
+  available: boolean('available').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
