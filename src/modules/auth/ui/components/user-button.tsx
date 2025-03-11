@@ -1,7 +1,7 @@
 'use client';
 
 import { User } from 'better-auth/types';
-import { LogOut } from 'lucide-react';
+import { LogOut, ShieldIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
 import { UserAvatar } from '@/components/user-avatar';
 import { authClient } from '@/lib/auth-client';
 
@@ -50,6 +51,16 @@ export const UserButton = ({ user }: UserButtonProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem
+          className="cursor-pointer text-red-600 focus:text-red-600"
+          onClick={() => {
+            router.push('/admin');
+          }}
+        >
+          <ShieldIcon className="mr-2 h-4 w-4 text-red-600" />
+          Admin Console
+        </DropdownMenuItem>
+        <Separator />
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600"
           onClick={onSignOut}
