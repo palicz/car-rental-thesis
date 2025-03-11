@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronsUpDown, LogOut, Settings, User } from 'lucide-react';
+import Link from 'next/link';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -94,9 +95,14 @@ export function UserSection({ user }: { user: User | null | undefined }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer gap-2 rounded-sm">
-              <LogOut className="text-destructive size-4" />
-              <span>Sign out</span>
+            <DropdownMenuItem
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer gap-2 rounded-sm"
+              asChild
+            >
+              <Link href="/">
+                <LogOut className="text-destructive size-4" />
+                <span>Sign out</span>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

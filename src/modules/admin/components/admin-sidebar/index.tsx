@@ -1,6 +1,7 @@
 'use client';
 
 import { Command } from 'lucide-react';
+import Image from 'next/image';
 
 import {
   Sidebar,
@@ -36,8 +37,14 @@ export const AdminSidebar = ({
                 href="/admin"
                 className="group flex items-center group-data-[collapsible=icon]:justify-center"
               >
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-9 items-center justify-center rounded-md shadow-sm transition-all group-hover:shadow">
-                  <Command className="size-5" />
+                <div className="flex aspect-square size-12 items-center justify-center group-data-[collapsible=icon]:size-9">
+                  <Image
+                    src="/logo.svg"
+                    alt="Car Rental Logo"
+                    className="size-full"
+                    width={48}
+                    height={48}
+                  />
                 </div>
                 <div className="ml-3 grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">Car Rental</span>
