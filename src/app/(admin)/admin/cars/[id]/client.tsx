@@ -50,7 +50,14 @@ const formSchema = z.object({
     message: 'Price must be a positive number.',
   }),
   available: z.boolean().default(true),
-  image: z.instanceof(File).optional(),
+  image: z
+    .instanceof(File)
+    .refine(
+      file => file.size <= 1024 * 1024, // 1MB limit
+      'Image size must be less than 1MB',
+    )
+    .refine(file => file.type.startsWith('image/'), 'File must be an image')
+    .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -141,6 +148,20 @@ export function CarEditClient({ id }: CarEditClientProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size
+      if (file.size > 1024 * 1024) {
+        toast.error('Image size must be less than 1MB');
+        e.target.value = ''; // Reset the input
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('File must be an image');
+        e.target.value = ''; // Reset the input
+        return;
+      }
+
       form.setValue('image', file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -161,20 +182,26 @@ export function CarEditClient({ id }: CarEditClientProps) {
 
       let imageUrl: string | undefined = car?.imageUrl || undefined;
       if (values.image) {
-        // Upload new image first
-        const newImageUrl = await uploadImage(values.image);
+        try {
+          // Upload new image first
+          const newImageUrl = await uploadImage(values.image);
 
-        // If upload successful and there was an old image, delete it
-        if (newImageUrl && car?.imageUrl) {
-          try {
-            await deleteImage(car.imageUrl);
-          } catch (error) {
-            console.error('Failed to delete old image:', error);
-            // Continue with update even if old image deletion fails
+          // If upload successful and there was an old image, delete it
+          if (newImageUrl && car?.imageUrl) {
+            try {
+              await deleteImage(car.imageUrl);
+            } catch (error) {
+              console.error('Failed to delete old image:', error);
+              toast.error('Failed to delete old image. Please try again.');
+              return;
+            }
           }
-        }
 
-        imageUrl = newImageUrl;
+          imageUrl = newImageUrl;
+        } catch {
+          toast.error('Failed to upload image. Please try again.');
+          return;
+        }
       }
 
       // Update the car using the tRPC mutation

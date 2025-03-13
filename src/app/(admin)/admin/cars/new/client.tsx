@@ -56,7 +56,14 @@ const formSchema = z.object({
     message: 'Price must be a positive number.',
   }),
   available: z.boolean().default(true),
-  image: z.instanceof(File).optional(),
+  image: z
+    .instanceof(File)
+    .refine(
+      file => file.size <= 1024 * 1024, // 1MB limit
+      'Image size must be less than 1MB',
+    )
+    .refine(file => file.type.startsWith('image/'), 'File must be an image')
+    .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -103,6 +110,20 @@ export function NewCarClient() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size
+      if (file.size > 1024 * 1024) {
+        toast.error('Image size must be less than 1MB');
+        e.target.value = ''; // Reset the input
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('File must be an image');
+        e.target.value = ''; // Reset the input
+        return;
+      }
+
       form.setValue('image', file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -116,7 +137,12 @@ export function NewCarClient() {
 
       let imageUrl: string | undefined;
       if (values.image) {
-        imageUrl = await uploadImage(values.image);
+        try {
+          imageUrl = await uploadImage(values.image);
+        } catch {
+          toast.error('Failed to upload image. Please try again.');
+          return;
+        }
       }
 
       // Create the car using the tRPC mutation
