@@ -1,6 +1,5 @@
 'use client';
 
-import { User } from 'better-auth/types';
 import { LogOut, ShieldIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +13,20 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { UserAvatar } from '@/components/user-avatar';
 import { authClient } from '@/lib/auth-client';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  role?: string | null;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  banned?: boolean | null;
+  banReason?: string | null;
+  banExpires?: Date | null;
+}
 
 interface UserButtonProps {
   user: User;
@@ -51,16 +64,20 @@ export const UserButton = ({ user }: UserButtonProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem
-          className="cursor-pointer text-red-600 focus:text-red-600"
-          onClick={() => {
-            router.push('/admin');
-          }}
-        >
-          <ShieldIcon className="mr-2 h-4 w-4 text-red-600" />
-          Admin Console
-        </DropdownMenuItem>
-        <Separator />
+        {user.role === 'admin' && (
+          <>
+            <DropdownMenuItem
+              className="cursor-pointer text-red-600 focus:text-red-600"
+              onClick={() => {
+                router.push('/admin');
+              }}
+            >
+              <ShieldIcon className="mr-2 h-4 w-4 text-red-600" />
+              Admin Console
+            </DropdownMenuItem>
+            <Separator />
+          </>
+        )}
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600"
           onClick={onSignOut}
