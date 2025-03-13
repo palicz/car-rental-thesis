@@ -86,3 +86,37 @@ export const protectedProcedure = t.procedure.use(
     });
   },
 );
+
+/**
+ * Admin procedure middleware that ensures the request is authenticated and the user has admin role.
+ *
+ * This middleware:
+ * 1. Uses the protectedProcedure to verify authentication
+ * 2. Checks if the authenticated user has the 'admin' role
+ * 3. Throws FORBIDDEN errors if the user is not an admin
+ *
+ * Use this for routes that require admin privileges.
+ * @example
+ * const adminOnlyRoute = adminProcedure.mutation(({ ctx }) => {
+ *   // Perform admin-only operations
+ *   return { success: true };
+ * });
+ */
+export const adminProcedure = protectedProcedure.use(
+  async function isAdmin(opts) {
+    const { ctx } = opts;
+
+    // Check if the user has admin role
+    if (ctx.user.role !== 'admin') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'You must be an admin to perform this action',
+      });
+    }
+
+    // Continue to the next middleware or resolver with the same context
+    return opts.next({
+      ctx,
+    });
+  },
+);
