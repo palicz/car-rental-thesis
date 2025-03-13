@@ -105,6 +105,7 @@ export const cars = pgTable('cars', {
   hasAC: boolean('has_ac').default(false),
   pricePerDay: decimal('price_per_day', { precision: 10, scale: 2 }).notNull(),
   available: boolean('available').default(true),
+  imageUrl: text('image_url'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
