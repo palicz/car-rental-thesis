@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { deleteImage } from '@/app/actions/upload';
 import { db } from '@/db';
 import { cars, categories, fuelTypes, transmissionTypes } from '@/db/schema';
 import type { Context } from '@/trpc/init';
@@ -18,6 +19,20 @@ const filterSchema = z.object({
   hasAC: z.boolean().optional(),
 });
 
+// Schema for car creation
+const carCreateSchema = z.object({
+  name: z.string().min(2),
+  categoryId: z.string().uuid().nullable(),
+  transmissionTypeId: z.string().uuid().nullable(),
+  fuelTypeId: z.string().uuid().nullable(),
+  doors: z.number().int().min(1).max(10).nullable(),
+  seats: z.number().int().min(1).max(20).nullable(),
+  hasAC: z.boolean(),
+  pricePerDay: z.number().positive(),
+  available: z.boolean(),
+  imageUrl: z.string().optional(),
+});
+
 // Schema for car updates
 const carUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -30,10 +45,11 @@ const carUpdateSchema = z.object({
   hasAC: z.boolean(),
   pricePerDay: z.number().positive(),
   available: z.boolean(),
+  imageUrl: z.string().optional(),
 });
 
+type CarCreateInput = z.infer<typeof carCreateSchema>;
 type CarUpdateInput = z.infer<typeof carUpdateSchema>;
-type CarCreateInput = Omit<CarUpdateInput, 'id'>;
 
 export const carsRouter = createTRPCRouter({
   // Public procedures - accessible to all users
@@ -154,37 +170,17 @@ export const carsRouter = createTRPCRouter({
     ),
 
   // Create a new car - admin only
-  create: adminProcedure
-    .input(carUpdateSchema.omit({ id: true }))
-    .mutation(
-      async ({
-        input,
-        ctx,
-      }: {
-        input: CarCreateInput;
-        ctx: Context & { user: any };
-      }) => {
-        // Log the admin action
-        console.log(`Admin ${ctx.currentUserId} created a new car`);
+  create: adminProcedure.input(carCreateSchema).mutation(async ({ input }) => {
+    const [car] = await db
+      .insert(cars)
+      .values({
+        ...input,
+        pricePerDay: input.pricePerDay.toString(),
+      })
+      .returning();
 
-        // Insert the new car
-        const result = await db
-          .insert(cars)
-          .values({
-            ...input,
-            // Convert pricePerDay to string to match the database schema
-            pricePerDay: input.pricePerDay.toString(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning({ id: cars.id });
-
-        return {
-          success: true,
-          id: result[0].id,
-        };
-      },
-    ),
+    return car;
+  }),
 
   // Delete a car - admin only
   delete: adminProcedure
@@ -199,9 +195,9 @@ export const carsRouter = createTRPCRouter({
       }) => {
         const { id } = input;
 
-        // Check if the car exists
+        // Check if the car exists and get its image URL
         const existingCar = await db
-          .select({ id: cars.id })
+          .select({ id: cars.id, imageUrl: cars.imageUrl })
           .from(cars)
           .where(eq(cars.id, id));
 
@@ -210,6 +206,16 @@ export const carsRouter = createTRPCRouter({
             code: 'NOT_FOUND',
             message: 'Car not found',
           });
+        }
+
+        // Delete the image if it exists
+        if (existingCar[0].imageUrl) {
+          try {
+            await deleteImage(existingCar[0].imageUrl);
+          } catch (error) {
+            console.error('Failed to delete image:', error);
+            // Continue with car deletion even if image deletion fails
+          }
         }
 
         // Log the admin action

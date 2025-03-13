@@ -9,6 +9,7 @@ export type Car = {
   hasAC: boolean;
   pricePerDay: number | string;
   available: boolean;
+  imageUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
   category?: {
