@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Save } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { uploadImage } from '@/app/actions/upload';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -33,6 +35,12 @@ import { Separator } from '@/components/ui/separator';
 import { FilterOptions } from '@/modules/cars/types';
 import { trpc } from '@/trpc/client';
 
+// Add this debug log
+console.log(
+  'BLOB_READ_WRITE_TOKEN:',
+  process.env.NEXT_PUBLIC_BLOB_READ_WRITE_TOKEN,
+);
+
 // Form schema for car creation
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -48,6 +56,7 @@ const formSchema = z.object({
     message: 'Price must be a positive number.',
   }),
   available: z.boolean().default(true),
+  image: z.instanceof(File).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,6 +64,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function NewCarClient() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Fetch filter options
   const filterOptionsQuery = trpc.cars.getFilterOptions.useSuspenseQuery();
@@ -89,13 +99,31 @@ export function NewCarClient() {
     },
   });
 
+  // Handle image selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      form.setValue('image', file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
   // Handle form submission
   const onSubmit = async (values: FormValues) => {
     try {
       setIsSubmitting(true);
 
+      let imageUrl: string | undefined;
+      if (values.image) {
+        imageUrl = await uploadImage(values.image);
+      }
+
       // Create the car using the tRPC mutation
-      await createMutation.mutateAsync(values);
+      await createMutation.mutateAsync({
+        ...values,
+        imageUrl,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -355,19 +383,38 @@ export function NewCarClient() {
             />
           </div>
 
-          {/* Image Upload Section (Placeholder for future Cloudinary integration) */}
-          <div className="space-y-4 rounded-md border p-4">
+          {/* Image Upload Section */}
+          <div>
             <div>
-              <h3 className="text-lg font-medium">Car Images</h3>
+              <h3 className="text-lg font-medium">Car Image</h3>
               <p className="text-muted-foreground text-sm">
-                Upload images of the car. Image upload functionality will be
-                implemented later with Cloudinary.
+                Upload an image of the car.
               </p>
             </div>
-            <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed">
-              <p className="text-muted-foreground text-sm">
-                Image upload will be available soon
-              </p>
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border">
+                {previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt="Car preview"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 768px"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-muted-foreground text-sm">
+                      No image selected
+                    </p>
+                  </div>
+                )}
+              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="max-w-md"
+              />
             </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Save } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -9,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { deleteImage, uploadImage } from '@/app/actions/upload';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -48,6 +50,7 @@ const formSchema = z.object({
     message: 'Price must be a positive number.',
   }),
   available: z.boolean().default(true),
+  image: z.instanceof(File).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,6 +62,7 @@ interface CarEditClientProps {
 export function CarEditClient({ id }: CarEditClientProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const utils = trpc.useUtils();
 
   // Force refetch on mount to ensure we have the latest data
@@ -133,15 +137,51 @@ export function CarEditClient({ id }: CarEditClientProps) {
     },
   });
 
+  // Handle image selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      form.setValue('image', file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  // Set initial preview URL when car data is loaded
+  useEffect(() => {
+    if (car?.imageUrl) {
+      setPreviewUrl(car.imageUrl);
+    }
+  }, [car?.imageUrl]);
+
   // Handle form submission
   const onSubmit = async (values: FormValues) => {
     try {
       setIsSubmitting(true);
 
+      let imageUrl: string | undefined = car?.imageUrl || undefined;
+      if (values.image) {
+        // Upload new image first
+        const newImageUrl = await uploadImage(values.image);
+
+        // If upload successful and there was an old image, delete it
+        if (newImageUrl && car?.imageUrl) {
+          try {
+            await deleteImage(car.imageUrl);
+          } catch (error) {
+            console.error('Failed to delete old image:', error);
+            // Continue with update even if old image deletion fails
+          }
+        }
+
+        imageUrl = newImageUrl;
+      }
+
       // Update the car using the tRPC mutation
       await updateMutation.mutateAsync({
         id,
         ...values,
+        imageUrl,
       });
     } finally {
       setIsSubmitting(false);
@@ -402,19 +442,38 @@ export function CarEditClient({ id }: CarEditClientProps) {
             />
           </div>
 
-          {/* Image Upload Section (Placeholder for future Cloudinary integration) */}
-          <div className="space-y-4 rounded-md border p-4">
+          {/* Image Upload Section */}
+          <div>
             <div>
-              <h3 className="text-lg font-medium">Car Images</h3>
+              <h3 className="text-lg font-medium">Car Image</h3>
               <p className="text-muted-foreground text-sm">
-                Upload images of the car. Image upload functionality will be
-                implemented later with Cloudinary.
+                Upload an image of the car.
               </p>
             </div>
-            <div className="flex h-32 items-center justify-center rounded-md border-2 border-dashed">
-              <p className="text-muted-foreground text-sm">
-                Image upload will be available soon
-              </p>
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border">
+                {previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt="Car preview"
+                    className="object-contain"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 768px"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <p className="text-muted-foreground text-sm">
+                      No image selected
+                    </p>
+                  </div>
+                )}
+              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="max-w-md"
+              />
             </div>
           </div>
 

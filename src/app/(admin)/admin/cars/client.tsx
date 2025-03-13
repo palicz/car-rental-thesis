@@ -9,6 +9,7 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
@@ -53,6 +54,11 @@ type SortField =
   | 'price'
   | 'available';
 type SortDirection = 'asc' | 'desc';
+
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const target = e.target as HTMLImageElement;
+  target.src = '/images/defaultcar.jpg';
+};
 
 export function CarsClient() {
   const router = useRouter();
@@ -274,11 +280,11 @@ export function CarsClient() {
           <TableHeader>
             <TableRow>
               <TableHead
-                className="cursor-pointer"
+                className="w-[300px] cursor-pointer"
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center">
-                  Name
+                  Car Details
                   {renderSortIcon('name')}
                 </div>
               </TableHead>
@@ -343,7 +349,22 @@ export function CarsClient() {
             ) : (
               filteredCars.map(car => (
                 <TableRow key={car.id}>
-                  <TableCell className="font-medium">{car.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-muted relative aspect-[4/3] w-20 overflow-hidden rounded-md">
+                        <Image
+                          src={car.imageUrl || '/images/defaultcar.jpg'}
+                          alt={car.name}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                          onError={handleImageError}
+                          priority={false}
+                        />
+                      </div>
+                      <span className="font-medium">{car.name}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{getCategoryName(car.categoryId)}</TableCell>
                   <TableCell>
                     {getTransmissionName(car.transmissionTypeId)}
