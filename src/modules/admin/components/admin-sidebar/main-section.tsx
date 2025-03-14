@@ -3,12 +3,8 @@
 import {
   Calendar,
   Car,
-  DollarSign,
   FolderTree,
   LayoutDashboard,
-  LineChart,
-  MapPin,
-  Settings,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,11 +23,6 @@ const overviewItems = [
     title: 'Dashboard',
     url: '/admin',
     icon: LayoutDashboard,
-  },
-  {
-    title: 'Analytics',
-    url: '/admin/analytics',
-    icon: LineChart,
   },
 ];
 
@@ -58,16 +49,6 @@ const settingsItems = [
     title: 'Categories',
     url: '/admin/categories',
     icon: FolderTree,
-  },
-  {
-    title: 'Pricing',
-    url: '/admin/pricing',
-    icon: DollarSign,
-  },
-  {
-    title: 'Settings',
-    url: '/admin/settings',
-    icon: Settings,
   },
 ];
 

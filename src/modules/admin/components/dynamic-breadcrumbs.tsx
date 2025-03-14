@@ -17,20 +17,13 @@ import { trpc } from '@/trpc/client';
 
 // Navigation structure matching the sidebar
 const navigationStructure = {
-  Overview: [
-    { title: 'Dashboard', url: '/admin' },
-    { title: 'Analytics', url: '/admin/analytics' },
-  ],
+  Overview: [{ title: 'Dashboard', url: '/admin' }],
   Management: [
     { title: 'Users', url: '/admin/users' },
     { title: 'Cars', url: '/admin/cars' },
     { title: 'Bookings', url: '/admin/bookings' },
   ],
-  Settings: [
-    { title: 'Categories', url: '/admin/categories' },
-    { title: 'Pricing', url: '/admin/pricing' },
-    { title: 'Settings', url: '/admin/settings' },
-  ],
+  Settings: [{ title: 'Categories', url: '/admin/categories' }],
 };
 
 // Function to find current page and section
