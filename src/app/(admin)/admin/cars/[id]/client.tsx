@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -72,13 +71,10 @@ export function CarEditClient({ id }: CarEditClientProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const utils = trpc.useUtils();
 
-  // Force refetch on mount to ensure we have the latest data
   useEffect(() => {
-    // Invalidate the cache for this specific car
     utils.cars.getById.invalidate({ id });
   }, [id, utils.cars.getById]);
 
-  // Fetch car data with refetchOnMount set to true
   const carQuery = trpc.cars.getById.useSuspenseQuery(
     { id },
     { refetchOnMount: true },
@@ -88,7 +84,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
   const car = carQuery[0] as Car;
   const filterOptions = filterOptionsQuery[0] as FilterOptions;
 
-  // Setup form with default values from car data
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -107,7 +102,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
     },
   });
 
-  // Reset form when car data changes
   useEffect(() => {
     if (car) {
       form.reset({
@@ -127,10 +121,8 @@ export function CarEditClient({ id }: CarEditClientProps) {
     }
   }, [car, form]);
 
-  // Get the update mutation
   const updateMutation = trpc.cars.update.useMutation({
     onSuccess: () => {
-      // Invalidate both the specific car and the car list
       utils.cars.getById.invalidate({ id });
       utils.cars.getMany.invalidate();
 
@@ -144,21 +136,19 @@ export function CarEditClient({ id }: CarEditClientProps) {
     },
   });
 
-  // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size
       if (file.size > 1024 * 1024) {
         toast.error('Image size must be less than 1MB');
-        e.target.value = ''; // Reset the input
+        e.target.value = ''; // RESET INPUT FIELD
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('File must be an image');
-        e.target.value = ''; // Reset the input
+        e.target.value = ''; // RESET INPUT FIELD
         return;
       }
 
@@ -168,14 +158,12 @@ export function CarEditClient({ id }: CarEditClientProps) {
     }
   };
 
-  // Set initial preview URL when car data is loaded
   useEffect(() => {
     if (car?.imageUrl) {
       setPreviewUrl(car.imageUrl);
     }
   }, [car?.imageUrl]);
 
-  // Handle form submission
   const onSubmit = async (values: FormValues) => {
     try {
       setIsSubmitting(true);
@@ -186,7 +174,7 @@ export function CarEditClient({ id }: CarEditClientProps) {
           // Upload new image first
           const newImageUrl = await uploadImage(values.image);
 
-          // If upload successful and there was an old image, delete it
+          // If upload successful and there was an old image then delete it
           if (newImageUrl && car?.imageUrl) {
             try {
               await deleteImage(car.imageUrl);
@@ -204,7 +192,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
         }
       }
 
-      // Update the car using the tRPC mutation
       await updateMutation.mutateAsync({
         id,
         ...values,
@@ -239,9 +226,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                   <FormControl>
                     <Input placeholder="Enter car name" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    The name of the car as it will appear to customers.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -271,9 +255,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The category this car belongs to.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -303,9 +284,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The transmission type of the car.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -335,7 +313,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>The fuel type of the car.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -363,9 +340,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       }}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The number of doors the car has.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -393,9 +367,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       }}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The number of seats the car has.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -416,9 +387,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The daily rental price in dollars.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -438,9 +406,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Air Conditioning</FormLabel>
-                    <FormDescription>
-                      Does the car have air conditioning?
-                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -460,9 +425,6 @@ export function CarEditClient({ id }: CarEditClientProps) {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Available for Rent</FormLabel>
-                    <FormDescription>
-                      Is this car currently available for rental?
-                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -474,7 +436,7 @@ export function CarEditClient({ id }: CarEditClientProps) {
             <div>
               <h3 className="text-lg font-medium">Car Image</h3>
               <p className="text-muted-foreground text-sm">
-                Upload an image of the car.
+                Upload an image of the car. MAXIMUM 1MB SUPPORTED
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4">

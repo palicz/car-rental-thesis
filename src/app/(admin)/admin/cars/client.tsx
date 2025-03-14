@@ -63,17 +63,14 @@ const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 export function CarsClient() {
   const router = useRouter();
 
-  // State for search and sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  // State for delete confirmation dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [carToDelete, setCarToDelete] = useState<Car | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Fetch data using tRPC
   const carsQuery = trpc.cars.getMany.useSuspenseQuery();
   const filterOptionsQuery = trpc.cars.getFilterOptions.useSuspenseQuery();
   const utils = trpc.useUtils();
@@ -81,7 +78,6 @@ export function CarsClient() {
   const cars = carsQuery[0] as Car[];
   const filterOptions = filterOptionsQuery[0] as FilterOptions;
 
-  // Delete mutation
   const deleteMutation = trpc.cars.delete.useMutation({
     onSuccess: () => {
       toast.success('Car deleted successfully');
@@ -96,13 +92,11 @@ export function CarsClient() {
     },
   });
 
-  // Handle car deletion
   const handleDeleteCar = useCallback((car: Car) => {
     setCarToDelete(car);
     setDeleteDialogOpen(true);
   }, []);
 
-  // Confirm car deletion
   const confirmDelete = useCallback(async () => {
     if (!carToDelete) return;
 
@@ -114,7 +108,6 @@ export function CarsClient() {
     }
   }, [carToDelete, deleteMutation]);
 
-  // Handle sorting
   const handleSort = useCallback(
     (field: SortField) => {
       if (sortField === field) {
@@ -127,24 +120,20 @@ export function CarsClient() {
     [sortField, sortDirection],
   );
 
-  // Handle search
   const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   }, []);
 
-  // Filter and sort cars
   const filteredCars = useMemo(() => {
-    // First filter by search query
     const filtered = cars.filter(car =>
       car.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
-    // Then sort
     return [...filtered].sort((a, b) => {
       let valueA: string | number | boolean;
       let valueB: string | number | boolean;
 
-      // Determine values to compare based on sort field
+      // If the values are equal, sort by name
       switch (sortField) {
         case 'name': {
           valueA = a.name;
@@ -198,7 +187,6 @@ export function CarsClient() {
         }
       }
 
-      // Compare values based on sort direction
       if (typeof valueA === 'string' && typeof valueB === 'string') {
         return sortDirection === 'asc'
           ? valueA.localeCompare(valueB)
@@ -211,7 +199,6 @@ export function CarsClient() {
     });
   }, [cars, searchQuery, sortField, sortDirection, filterOptions]);
 
-  // Render sort icon
   const renderSortIcon = useCallback(
     (field: SortField) => {
       if (sortField !== field) return null;
@@ -224,7 +211,6 @@ export function CarsClient() {
     [sortField, sortDirection],
   );
 
-  // Get category, transmission, and fuel type names
   const getCategoryName = useCallback(
     (categoryId: string | null) => {
       if (!categoryId) return 'N/A';
@@ -416,7 +402,7 @@ export function CarsClient() {
                           className="text-destructive focus:text-destructive cursor-pointer"
                           onClick={() => handleDeleteCar(car)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          <Trash2 className="text-destructive mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -435,8 +421,7 @@ export function CarsClient() {
           <DialogHeader>
             <DialogTitle>Delete Car</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete {carToDelete?.name}? This action
-              cannot be undone.
+              Are you sure you want to delete {carToDelete?.name}?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex space-x-2 sm:justify-end">

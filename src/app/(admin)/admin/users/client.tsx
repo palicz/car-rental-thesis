@@ -321,7 +321,7 @@ export function UsersClient() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 cursor-pointer p-0"
                           onClick={() => setSelectedUser(user.id)}
                         >
                           <MoreHorizontal className="h-4 w-4" />
@@ -331,6 +331,7 @@ export function UsersClient() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
+                          className="cursor-pointer"
                           onClick={() => {
                             setSelectedUser(user.id);
                             if (user.banned) {
@@ -343,24 +344,24 @@ export function UsersClient() {
                           {user.banned ? (
                             <>
                               <UserCheck className="mr-2 h-4 w-4" />
-                              Unban User
+                              Unban
                             </>
                           ) : (
                             <>
                               <Ban className="mr-2 h-4 w-4" />
-                              Ban User
+                              Ban
                             </>
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-destructive"
+                          className="text-destructive focus:text-destructive cursor-pointer"
                           onClick={() => {
                             setSelectedUser(user.id);
                             setDeleteDialogOpen(true);
                           }}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete User
+                          <Trash2 className="text-destructive mr-2 h-4 w-4" />
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -377,8 +378,7 @@ export function UsersClient() {
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be
-              undone.
+              Are you sure you want to delete this user?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -390,6 +390,7 @@ export function UsersClient() {
             </Button>
             <Button
               variant="destructive"
+              className="cursor-pointer"
               onClick={() => selectedUser && handleDelete(selectedUser)}
               disabled={!selectedUser}
             >
@@ -404,7 +405,7 @@ export function UsersClient() {
           <DialogHeader>
             <DialogTitle>Ban User</DialogTitle>
             <DialogDescription>
-              Enter the reason for banning this user and select the duration.
+              Enter the reason and time for banning this user.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -444,10 +445,11 @@ export function UsersClient() {
               Cancel
             </Button>
             <Button
+              className="cursor-pointer"
               onClick={() => selectedUser && handleBan(selectedUser)}
               disabled={!selectedUser || !banReason}
             >
-              Ban User
+              Ban
             </Button>
           </DialogFooter>
         </DialogContent>

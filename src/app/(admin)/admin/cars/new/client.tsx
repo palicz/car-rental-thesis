@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -35,13 +34,7 @@ import { Separator } from '@/components/ui/separator';
 import { FilterOptions } from '@/modules/cars/types';
 import { trpc } from '@/trpc/client';
 
-// Add this debug log
-console.log(
-  'BLOB_READ_WRITE_TOKEN:',
-  process.env.NEXT_PUBLIC_BLOB_READ_WRITE_TOKEN,
-);
-
-// Form schema for car creation
+// Form schema for validation
 const formSchema = z.object({
   name: z.string().min(2, {
     message: 'Car name must be at least 2 characters.',
@@ -73,11 +66,9 @@ export function NewCarClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Fetch filter options
   const filterOptionsQuery = trpc.cars.getFilterOptions.useSuspenseQuery();
   const filterOptions = filterOptionsQuery[0] as FilterOptions;
 
-  // Setup form with default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -93,7 +84,6 @@ export function NewCarClient() {
     },
   });
 
-  // Get the create mutation
   const createMutation = trpc.cars.create.useMutation({
     onSuccess: data => {
       toast.success('Car created successfully');
@@ -106,21 +96,19 @@ export function NewCarClient() {
     },
   });
 
-  // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file size
       if (file.size > 1024 * 1024) {
         toast.error('Image size must be less than 1MB');
-        e.target.value = ''; // Reset the input
+        e.target.value = ''; // RESET INPUT FIELD
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('File must be an image');
-        e.target.value = ''; // Reset the input
+        e.target.value = ''; // RESET INPUT FIELD
         return;
       }
 
@@ -130,7 +118,6 @@ export function NewCarClient() {
     }
   };
 
-  // Handle form submission
   const onSubmit = async (values: FormValues) => {
     try {
       setIsSubmitting(true);
@@ -145,7 +132,6 @@ export function NewCarClient() {
         }
       }
 
-      // Create the car using the tRPC mutation
       await createMutation.mutateAsync({
         ...values,
         imageUrl,
@@ -179,9 +165,6 @@ export function NewCarClient() {
                   <FormControl>
                     <Input placeholder="Enter car name" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    The name of the car as it will appear to customers.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,9 +194,6 @@ export function NewCarClient() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The category this car belongs to.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -243,9 +223,6 @@ export function NewCarClient() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>
-                    The transmission type of the car.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -275,7 +252,6 @@ export function NewCarClient() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormDescription>The fuel type of the car.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -303,9 +279,6 @@ export function NewCarClient() {
                       }}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The number of doors the car has.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -333,9 +306,6 @@ export function NewCarClient() {
                       }}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The number of seats the car has.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -356,9 +326,6 @@ export function NewCarClient() {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>
-                    The daily rental price in dollars.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -378,9 +345,6 @@ export function NewCarClient() {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Air Conditioning</FormLabel>
-                    <FormDescription>
-                      Does the car have air conditioning?
-                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -400,9 +364,6 @@ export function NewCarClient() {
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>Available for Rent</FormLabel>
-                    <FormDescription>
-                      Is this car currently available for rental?
-                    </FormDescription>
                   </div>
                 </FormItem>
               )}
@@ -414,7 +375,7 @@ export function NewCarClient() {
             <div>
               <h3 className="text-lg font-medium">Car Image</h3>
               <p className="text-muted-foreground text-sm">
-                Upload an image of the car.
+                Upload an image of the car. MAXIMUM 1MB SUPPORTED
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4">

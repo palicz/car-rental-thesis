@@ -10,7 +10,7 @@ import { NewCarClient } from './client';
 export const dynamic = 'force-dynamic';
 
 export default async function NewCarPage() {
-  // Prefetch necessary data
+  // Prefetch
   await trpc.categories.getMany.prefetch();
   await trpc.cars.getFilterOptions.prefetch();
 

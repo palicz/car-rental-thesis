@@ -18,7 +18,7 @@ interface CarEditPageProps {
   params: Params;
 }
 
-// Generate metadata for the page
+// Metadata for the page
 export async function generateMetadata({
   params,
 }: CarEditPageProps): Promise<Metadata> {
@@ -28,13 +28,10 @@ export async function generateMetadata({
   };
 }
 
-// Main page component
 export default async function CarEditPage({ params }: CarEditPageProps) {
   try {
-    // Await params before accessing its properties
     const { id } = await params;
 
-    // Prefetch all necessary data
     await trpc.cars.getById.prefetch({ id });
     await trpc.categories.getMany.prefetch();
     await trpc.cars.getFilterOptions.prefetch();

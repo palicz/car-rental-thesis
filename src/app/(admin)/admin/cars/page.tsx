@@ -10,7 +10,6 @@ import { CarsClient } from './client';
 export const dynamic = 'force-dynamic';
 
 export default async function CarsAdminPage() {
-  // Prefetch all data once
   void trpc.cars.getMany.prefetch();
   void trpc.categories.getMany.prefetch();
   void trpc.cars.getFilterOptions.prefetch();
