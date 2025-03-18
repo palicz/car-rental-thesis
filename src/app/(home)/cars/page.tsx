@@ -6,11 +6,9 @@ import { HydrateClient, trpc } from '@/trpc/server';
 
 import { PageClient } from './client';
 
-// Add dynamic rendering to prevent prerender errors
 export const dynamic = 'force-dynamic';
 
 export default async function CarsPage() {
-  // Prefetch all data once
   void trpc.categories.getMany.prefetch();
   void trpc.cars.getMany.prefetch();
   void trpc.cars.getFilterOptions.prefetch();
@@ -32,7 +30,6 @@ export default async function CarsPage() {
   );
 }
 
-// Skeleton loader for the entire page
 const PageSkeleton = () => {
   return (
     <div className="container mx-auto py-8">
@@ -70,7 +67,6 @@ const PageSkeleton = () => {
   );
 };
 
-// Skeleton for a car card
 const CarCardSkeleton = () => {
   return (
     <div className="overflow-hidden rounded-lg border">

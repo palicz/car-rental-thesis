@@ -2,9 +2,13 @@
 
 import { Car as CarIcon } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -12,23 +16,44 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useSession } from '@/lib/auth-client';
 import { Car } from '@/modules/cars/types';
 
 type CarCardProps = {
   car: Car;
+  dateRange?: DateRange;
 };
 
-export function CarCard({ car }: CarCardProps) {
+export function CarCard({ car, dateRange }: CarCardProps) {
   const [imageError, setImageError] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
 
-  // Convert pricePerDay to number if it's a string
   const price =
     typeof car.pricePerDay === 'string'
       ? Number.parseFloat(car.pricePerDay)
       : car.pricePerDay;
 
+  const handleBookClick = () => {
+    if (session) {
+      // usse dateRange prop directly
+      if (dateRange?.from && dateRange?.to) {
+        const startDate = dateRange.from.toISOString();
+        const endDate = dateRange.to.toISOString();
+        router.push(
+          `/booking/${car.id}?startDate=${startDate}&endDate=${endDate}`,
+        );
+      } else {
+        toast.error('Please select rental dates first');
+        router.push('/cars');
+      }
+    } else {
+      router.push('/login');
+    }
+  };
+
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-lg">
+    <Card className="group relative overflow-hidden transition-all hover:shadow-lg">
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
         {imageError ? (
           <div className="flex h-full items-center justify-center bg-gray-100">
@@ -45,7 +70,18 @@ export function CarCard({ car }: CarCardProps) {
             priority={false}
           />
         )}
-        {!car.available && (
+        {car.available ? (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-300 group-hover:opacity-100">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+            <Button
+              onClick={handleBookClick}
+              className="relative z-10 scale-0 transform cursor-pointer transition-transform duration-300 group-hover:scale-100"
+              size="lg"
+            >
+              Book Now
+            </Button>
+          </div>
+        ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
             <Badge variant="destructive" className="text-lg font-semibold">
               Not Available
@@ -93,13 +129,13 @@ export function CarCard({ car }: CarCardProps) {
         <div className="text-muted-foreground text-sm">
           <div>Transmission:</div>
           <div className="text-foreground font-medium">
-            {car.transmissionTypeId ? 'Automatic' : 'Manual'}
+            {car.transmissionType?.name || 'N/A'}
           </div>
         </div>
         <div className="text-muted-foreground text-sm">
           <div>Fuel Type:</div>
           <div className="text-foreground font-medium">
-            {car.fuelTypeId ? 'Petrol' : 'N/A'}
+            {car.fuelType?.name || 'N/A'}
           </div>
         </div>
       </CardFooter>

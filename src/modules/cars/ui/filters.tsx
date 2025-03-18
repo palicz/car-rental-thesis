@@ -25,6 +25,7 @@ type FilterProps = {
   seatsRange: FilterOptions['seatsRange'];
   onFilterChange: (filters: CarFiltersType) => void;
   resetKey?: number;
+  disabled?: boolean;
 };
 
 export function CarFilters({
@@ -35,6 +36,7 @@ export function CarFilters({
   seatsRange,
   onFilterChange,
   resetKey = 0,
+  disabled = false,
 }: FilterProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTransmissions, setSelectedTransmissions] = useState<string[]>(
@@ -128,7 +130,9 @@ export function CarFilters({
   };
 
   return (
-    <div className="w-full max-w-xs space-y-4">
+    <div
+      className={`w-full max-w-xs space-y-4 ${disabled ? 'pointer-events-none opacity-70' : ''}`}
+    >
       <Accordion
         type="multiple"
         defaultValue={['categories', 'transmission', 'fuel']}
@@ -148,8 +152,14 @@ export function CarFilters({
                     onCheckedChange={(checked: boolean | 'indeterminate') =>
                       handleCategoryChange(category.id, checked === true)
                     }
+                    disabled={disabled}
                   />
-                  <Label htmlFor={`category-${category.id}`}>
+                  <Label
+                    htmlFor={`category-${category.id}`}
+                    className={
+                      disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                    }
+                  >
                     {category.name}
                   </Label>
                 </div>
@@ -173,8 +183,16 @@ export function CarFilters({
                     onCheckedChange={(checked: boolean | 'indeterminate') =>
                       handleTransmissionChange(type.id, checked === true)
                     }
+                    disabled={disabled}
                   />
-                  <Label htmlFor={`transmission-${type.id}`}>{type.name}</Label>
+                  <Label
+                    htmlFor={`transmission-${type.id}`}
+                    className={
+                      disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                    }
+                  >
+                    {type.name}
+                  </Label>
                 </div>
               ))}
             </div>
@@ -196,8 +214,16 @@ export function CarFilters({
                     onCheckedChange={(checked: boolean | 'indeterminate') =>
                       handleFuelTypeChange(type.id, checked === true)
                     }
+                    disabled={disabled}
                   />
-                  <Label htmlFor={`fuel-${type.id}`}>{type.name}</Label>
+                  <Label
+                    htmlFor={`fuel-${type.id}`}
+                    className={
+                      disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                    }
+                  >
+                    {type.name}
+                  </Label>
                 </div>
               ))}
             </div>
@@ -211,12 +237,13 @@ export function CarFilters({
           <AccordionContent>
             <div className="space-y-4 pt-4">
               <Slider
-                className="cursor-pointer"
+                className={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
                 min={minDoors}
                 max={maxDoors}
                 step={1}
                 value={doorRange}
                 onValueChange={handleDoorRangeChange}
+                disabled={disabled}
               />
               <div className="flex justify-between">
                 <span>{doorRange[0]} doors</span>
@@ -233,11 +260,13 @@ export function CarFilters({
           <AccordionContent>
             <div className="space-y-4 pt-4">
               <Slider
+                className={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
                 min={minSeats}
                 max={maxSeats}
                 step={1}
                 value={seatRange}
                 onValueChange={handleSeatRangeChange}
+                disabled={disabled}
               />
               <div className="flex justify-between">
                 <span>{seatRange[0]} seats</span>
@@ -254,8 +283,14 @@ export function CarFilters({
           id="ac"
           checked={hasAC === true}
           onCheckedChange={handleACChange}
+          disabled={disabled}
         />
-        <Label htmlFor="ac">Has Air Conditioning</Label>
+        <Label
+          htmlFor="ac"
+          className={disabled ? 'cursor-not-allowed' : 'cursor-pointer'}
+        >
+          Has Air Conditioning
+        </Label>
       </div>
     </div>
   );

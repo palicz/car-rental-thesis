@@ -1,25 +1,24 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, lte, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { deleteImage } from '@/app/actions/upload';
 import { db } from '@/db';
-import { cars, categories, fuelTypes, transmissionTypes } from '@/db/schema';
+import {
+  bookings,
+  cars,
+  categories,
+  fuelTypes,
+  transmissionTypes,
+} from '@/db/schema';
 import type { Context } from '@/trpc/init';
 import { adminProcedure, baseProcedure, createTRPCRouter } from '@/trpc/init';
 
-const filterSchema = z.object({
-  categoryIds: z.array(z.string().uuid()).optional(),
-  transmissionTypeIds: z.array(z.string().uuid()).optional(),
-  fuelTypeIds: z.array(z.string().uuid()).optional(),
-  minDoors: z.number().optional(),
-  maxDoors: z.number().optional(),
-  minSeats: z.number().optional(),
-  maxSeats: z.number().optional(),
-  hasAC: z.boolean().optional(),
+const dateRangeSchema = z.object({
+  startDate: z.date(),
+  endDate: z.date(),
 });
 
-// Schema for car creation
 const carCreateSchema = z.object({
   name: z.string().min(2),
   categoryId: z.string().uuid().nullable(),
@@ -33,7 +32,6 @@ const carCreateSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
-// Schema for car updates
 const carUpdateSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(2),
@@ -48,25 +46,72 @@ const carUpdateSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
-type CarCreateInput = z.infer<typeof carCreateSchema>;
 type CarUpdateInput = z.infer<typeof carUpdateSchema>;
 
 export const carsRouter = createTRPCRouter({
-  // Public procedures - accessible to all users
   getMany: baseProcedure.query(async () => {
     const data = await db
       .select()
       .from(cars)
-      .leftJoin(categories, eq(cars.categoryId, categories.id));
+      .leftJoin(categories, eq(cars.categoryId, categories.id))
+      .leftJoin(
+        transmissionTypes,
+        eq(cars.transmissionTypeId, transmissionTypes.id),
+      )
+      .leftJoin(fuelTypes, eq(cars.fuelTypeId, fuelTypes.id));
 
-    // Transform the joined data to match the expected format
     return data.map(row => ({
       ...row.cars,
       category: row.categories,
+      transmissionType: row.transmission_types,
+      fuelType: row.fuel_types,
     }));
   }),
 
-  // Get a car by ID - accessible to all users
+  getAvailable: baseProcedure
+    .input(dateRangeSchema)
+    .query(async ({ input }) => {
+      try {
+        let conditions = [eq(cars.available, true)];
+
+        conditions.push(
+          sql`NOT EXISTS (
+            SELECT 1 FROM ${bookings}
+            WHERE ${bookings.carId} = ${cars.id}
+            AND (${bookings.status} = 'approved' OR ${bookings.status} = 'pending')
+            AND ${bookings.startDate} <= ${input.endDate}
+            AND ${bookings.endDate} >= ${input.startDate}
+          )`,
+        );
+
+        const data = await db
+          .select()
+          .from(cars)
+          .leftJoin(categories, eq(cars.categoryId, categories.id))
+          .leftJoin(
+            transmissionTypes,
+            eq(cars.transmissionTypeId, transmissionTypes.id),
+          )
+          .leftJoin(fuelTypes, eq(cars.fuelTypeId, fuelTypes.id))
+          .where(and(...conditions));
+
+        return data.map(row => ({
+          ...row.cars,
+          category: row.categories,
+          transmissionType: row.transmission_types,
+          fuelType: row.fuel_types,
+        }));
+      } catch (error) {
+        console.error('Error in getAvailable procedure:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch available cars',
+          cause: error,
+        });
+      }
+    }),
+
+  // Get a car by ID
   getById: baseProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ input }) => {
@@ -74,6 +119,11 @@ export const carsRouter = createTRPCRouter({
         .select()
         .from(cars)
         .leftJoin(categories, eq(cars.categoryId, categories.id))
+        .leftJoin(
+          transmissionTypes,
+          eq(cars.transmissionTypeId, transmissionTypes.id),
+        )
+        .leftJoin(fuelTypes, eq(cars.fuelTypeId, fuelTypes.id))
         .where(eq(cars.id, input.id));
 
       if (data.length === 0) {
@@ -83,14 +133,15 @@ export const carsRouter = createTRPCRouter({
         });
       }
 
-      // Transform the joined data to match the expected format
       return {
         ...data[0].cars,
         category: data[0].categories,
+        transmissionType: data[0].transmission_types,
+        fuelType: data[0].fuel_types,
       };
     }),
 
-  // Get all available filter options - accessible to all users
+  // Get all available filter options
   getFilterOptions: baseProcedure.query(async () => {
     const [categoriesData, transmissionTypesData, fuelTypesData] =
       await Promise.all([
@@ -122,8 +173,6 @@ export const carsRouter = createTRPCRouter({
       seatsRange: seatsRange[0],
     };
   }),
-
-  // Admin-only procedures - protected with adminProcedure
 
   // Update a car - admin only
   update: adminProcedure
@@ -159,7 +208,6 @@ export const carsRouter = createTRPCRouter({
           .update(cars)
           .set({
             ...updateData,
-            // Convert pricePerDay to string to match the database schema
             pricePerDay: updateData.pricePerDay.toString(),
             updatedAt: new Date(),
           })
@@ -214,7 +262,6 @@ export const carsRouter = createTRPCRouter({
             await deleteImage(existingCar[0].imageUrl);
           } catch (error) {
             console.error('Failed to delete image:', error);
-            // Continue with car deletion even if image deletion fails
           }
         }
 

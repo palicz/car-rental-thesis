@@ -55,5 +55,11 @@ export function resetAuthClient() {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/booking',
+    '/booking/:path*',
+    '/bookings',
+    '/bookings/:path*',
+  ],
 };

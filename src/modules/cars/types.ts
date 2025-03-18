@@ -18,7 +18,17 @@ export type Car = {
     description: string | null;
     createdAt: Date;
     updatedAt: Date;
-  };
+  } | null;
+  transmissionType?: {
+    id: string;
+    name: string;
+    createdAt: Date;
+  } | null;
+  fuelType?: {
+    id: string;
+    name: string;
+    createdAt: Date;
+  } | null;
 };
 
 export type FilterOptions = {

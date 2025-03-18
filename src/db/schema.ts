@@ -109,3 +109,25 @@ export const cars = pgTable('cars', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const bookings = pgTable('bookings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  carId: uuid('car_id')
+    .notNull()
+    .references(() => cars.id, { onDelete: 'cascade' }),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date').notNull(),
+  totalPrice: decimal('total_price', { precision: 10, scale: 2 }).notNull(),
+  status: text('status', {
+    enum: ['pending', 'approved', 'completed', 'cancelled'],
+  })
+    .notNull()
+    .default('pending'),
+  isOver18: boolean('is_over_18').notNull(),
+  drivingLicenseNumber: text('driving_license_number').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

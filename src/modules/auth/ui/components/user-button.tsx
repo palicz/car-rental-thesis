@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, ShieldIcon } from 'lucide-react';
+import { Calendar, LogOut, ShieldIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,16 @@ export const UserButton = ({ user }: UserButtonProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => {
+            router.push('/bookings');
+          }}
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          My Bookings
+        </DropdownMenuItem>
+        <Separator />
         {user.role === 'admin' && (
           <>
             <DropdownMenuItem
