@@ -8,13 +8,16 @@ import { BookingClient } from './client';
 
 export const dynamic = 'force-dynamic';
 
-interface BookingPageProps {
-  params: {
-    id: string;
-  };
-}
+// next 15 async params need promise
+// https://nextjs.org/docs/app/building-your-application/upgrading/version-15#async-request-apis-breaking-change
 
-export default async function BookingPage({ params }: BookingPageProps) {
+type PageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
+export default async function BookingPage({ params }: PageProps) {
   const { id } = await params;
 
   await trpc.cars.getById.prefetch({ id });
