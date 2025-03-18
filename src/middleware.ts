@@ -61,5 +61,7 @@ export const config = {
     '/booking/:path*',
     '/bookings',
     '/bookings/:path*',
+    '/profile',
+    '/profile/:path*',
   ],
 };
