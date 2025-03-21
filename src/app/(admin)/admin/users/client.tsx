@@ -49,12 +49,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/trpc/client';
 
 type SortField = 'name' | 'email' | 'role' | 'banned' | 'createdAt';
 
 export function UsersClient() {
-  const router = useRouter();
+  const { data: sessionData } = useSession();
+  const currentUserId = sessionData?.user.id;
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -187,6 +189,13 @@ export function UsersClient() {
     return filtered;
   }, [users, searchQuery, sortField, sortDirection]);
 
+  const isCurrentUser = useCallback(
+    (userId: string): boolean => {
+      return Boolean(currentUserId && currentUserId === userId);
+    },
+    [currentUserId],
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -292,6 +301,7 @@ export function UsersClient() {
                       onValueChange={value =>
                         handleRoleChange(user.id, value as 'admin' | 'user')
                       }
+                      disabled={isCurrentUser(user.id)}
                     >
                       <SelectTrigger className="w-[120px]">
                         <SelectValue />
@@ -340,6 +350,7 @@ export function UsersClient() {
                               setBanDialogOpen(true);
                             }
                           }}
+                          disabled={isCurrentUser(user.id)}
                         >
                           {user.banned ? (
                             <>
@@ -359,6 +370,7 @@ export function UsersClient() {
                             setSelectedUser(user.id);
                             setDeleteDialogOpen(true);
                           }}
+                          disabled={isCurrentUser(user.id)}
                         >
                           <Trash2 className="text-destructive mr-2 h-4 w-4" />
                           Delete
@@ -392,7 +404,9 @@ export function UsersClient() {
               variant="destructive"
               className="cursor-pointer"
               onClick={() => selectedUser && handleDelete(selectedUser)}
-              disabled={!selectedUser}
+              disabled={Boolean(
+                !selectedUser || (selectedUser && isCurrentUser(selectedUser)),
+              )}
             >
               Delete
             </Button>
@@ -447,7 +461,11 @@ export function UsersClient() {
             <Button
               className="cursor-pointer"
               onClick={() => selectedUser && handleBan(selectedUser)}
-              disabled={!selectedUser || !banReason}
+              disabled={Boolean(
+                !selectedUser ||
+                  !banReason ||
+                  (selectedUser && isCurrentUser(selectedUser)),
+              )}
             >
               Ban
             </Button>
