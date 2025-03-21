@@ -85,13 +85,14 @@ export function UserSection({ user }: { user: User | null | undefined }) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer gap-2 rounded-sm">
-                <User className="size-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-pointer gap-2 rounded-sm">
-                <Settings className="size-4" />
-                <span>Account settings</span>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/profile"
+                  className="hover:bg-accent hover:text-accent-foreground cursor-pointer gap-2 rounded-sm"
+                >
+                  <User className="size-4" />
+                  <span>Profile</span>
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
