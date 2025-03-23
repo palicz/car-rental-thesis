@@ -86,7 +86,7 @@ export const AnimatedHeaderBackground = () => {
             // On large screens, use the container style with max width
             // On small screens, make it full width
             width: isLargeScreen ? 'calc(100% - 3rem)' : '100%',
-            maxWidth: isLargeScreen ? 'calc(80rem + 3rem)' : 'none',
+            maxWidth: isLargeScreen ? 'calc(1080px + 3rem)' : 'none',
             marginLeft: isLargeScreen ? '50%' : '0',
             transform: isLargeScreen ? 'translateX(-50%)' : 'none',
           }}
