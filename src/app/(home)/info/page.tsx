@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Footer } from '@/modules/home/ui/components/footer';
 
 interface FAQItem {
   question: string;
@@ -103,6 +104,7 @@ export default function InfoPage() {
           <div className="absolute left-1/2 h-px w-screen -translate-x-1/2 bg-gray-200"></div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

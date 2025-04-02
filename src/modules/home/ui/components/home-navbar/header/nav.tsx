@@ -23,7 +23,6 @@ export const HeaderNavigation = () => {
   const tabs = [
     { name: 'Cars', href: '/cars' },
     { name: 'Informations', href: '/info' },
-    { name: 'Prices', href: '/pricing' },
     { name: 'Contact', href: '/contact' },
   ];
 
