@@ -8,12 +8,6 @@ const getBaseUrl = () => {
     return '';
   }
 
-  // Reference environment variables
-  if (process.env.VERCEL_URL) {
-    // Vercel deployment
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
   if (process.env.BETTER_AUTH_URL) {
     // Use the configured auth URL if available
     return process.env.BETTER_AUTH_URL;
